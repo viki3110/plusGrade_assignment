@@ -13,7 +13,7 @@ async def async_client():
 
 @pytest_asyncio.fixture
 async def data_load(data_provider):
-    keys,value=data.prediction_mock_data
+    keys,value=data_provider
     completed_jobID = []
     completed_values=[]
     for i in range(len(keys)):

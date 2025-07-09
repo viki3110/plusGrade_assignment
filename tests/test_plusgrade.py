@@ -55,6 +55,7 @@ async def test_result_API(async_client,data_load):
     print(f'results are {result.json()}')
     for i in range(100):
         res=await async_client.get(url=f'http://127.0.0.1:8000/result/{"'" + data_load[i] + "'"}')
+
         print(res.json())
 
     print(result.status_code)

@@ -2,12 +2,14 @@ import asyncio
 
 import asyncio
 import time
-
+from uuid import uuid4
 import pytest
-
+import data
+#import data
 import main
 from application.app import Application
 from data import prediction_mock_data
+#from data import prediction_mock_data
 from models import prediction_request
 
 from models import prediction_request
@@ -29,9 +31,7 @@ async def test_POST_API(async_client):
           'balance':10000,
             'last_purchase_size':60,
            'last_purchase_date':'2025-02-02'}
-    #job=await async_client.post(url='http://127.0.0.1:8000/predict',json=body)
     task=await asyncio.create_task(async_client.post(url='http://127.0.0.1:8000/predict',json=body))
-    #print(job.content)
     print(task.status_code)
     print(task.content)
     print(app.jobs.keys())
@@ -89,7 +89,55 @@ async def test_mock_data(async_client):
         print(app.jobs.values())
 
 
+@pytest.mark.xfail
+@pytest.mark.asyncio
+async def test_future_dated_transaction(async_client):
+    test_future_dated_transaction.__doc__="This Test case is to verify that if last purchase date is future dated, Probability can not be more than one, System should alert the user to put present or past date"
+    pay_load={'member_id':'M01',
+          'balance':10000,
+            'last_purchase_size':60,
+           'last_purchase_date':'2025-07-10'}
+
+    response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
+    assert response.status_code==200
+    assert response.json()['probability_to_transact']>1
 
 
 
+@pytest.mark.asyncio
+async def test_edgecase_member_ID_typeCheck(async_client):
+    test_edgecase_member_ID_typeCheck.__doc__="This Test case is to verify if member ID is passed as String, the status code should not be 200 OK."
+    pay_load={'member_id':200,
+          'balance':2000,
+            'last_purchase_size':60,
+           'last_purchase_date':'2025-06-10'}
+
+    response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
+    print(response.json())
+    assert response.status_code!=200
+
+@pytest.mark.asyncio
+async def test_payload_parameter_check(async_client):
+    test_payload_parameter_check.__doc__="This Test case is to verify that if payload is not well construct, we should not get 200OK"
+    pay_load={'member_id':'M01',
+              }
+    response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
+    assert response.status_code!=200
+
+
+@pytest.mark.asyncio
+async def test_incorrect_leap_year_transaction(async_client):
+    test_incorrect_leap_year_transaction.__doc__= "This Test is to validate if incorrect date(Feb 29th-2025) was passed in last transaction date "
+    pay_load={'member_id':'M01',
+          'balance':2000,
+            'last_purchase_size':60,
+           'last_purchase_date':'2025-02-29'}
+    response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
+    assert response.status_code!=200
+
+@pytest.mark.asyncio
+async def test_status_incorrect_jobID(async_client):
+    jobid=str(uuid4())
+    response=await async_client.get(url=f'http://127.0.0.1:8000/status/{jobid}')
+    print(response.json())
 

@@ -26,7 +26,7 @@ class Application(FastAPI):
     async def predict(self, prediction_request: PredictionRequest) -> Dict[str, float]:
         job_id = str(uuid4())
         self.jobs[job_id] = {"status": "processing", "result": None}
-        await asyncio.create_task(self.process_job(job_id, prediction_request))
+        asyncio.create_task(self.process_job(job_id, prediction_request))
         await asyncio.sleep(random.random() * 3)  # Simulate a long-running task
         return await get_predictions(prediction_request)
 

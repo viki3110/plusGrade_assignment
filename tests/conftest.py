@@ -1,13 +1,9 @@
-import asyncio
-import data
-from data import prediction_mock_data
-import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-
-import main
-from application.app import Application
-app=Application()
+#from application.app import Application
+from util.utility import data, job
+#app=Application()
+app=job.Application()
 
 @pytest_asyncio.fixture
 async def async_client():
@@ -16,26 +12,20 @@ async def async_client():
 
 
 @pytest_asyncio.fixture
-async def data_load(data):
-    keys,value=data
+async def data_load(data_provider):
+    keys,value=data.prediction_mock_data
     completed_jobID = []
     completed_values=[]
-
     for i in range(len(keys)):
         if value[i]['status'] == 'completed':
             completed_jobID.append(keys[i])
             completed_values.append(value[i])
-
     print(f'first completed value with valid job {completed_jobID[0]} are {completed_values[0]}')
-
-
     return completed_jobID
-
-
-
 @pytest_asyncio.fixture
-async def data():
-    await main.create_job()
+async def data_provider():
+    await job.create_job()
+
     job_value=list(app.jobs.values())
     job_keys=list(app.jobs.keys())
     return job_keys,job_value

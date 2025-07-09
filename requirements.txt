@@ -12,3 +12,7 @@ typing-inspection==0.4.0
 typing_extensions==4.13.2
 uuid==1.30
 uvicorn==0.34.2
+pytest-html==4.1.1
+httpx~=0.28.1
+pytest~=8.4.1
+pandas~=2.3.1

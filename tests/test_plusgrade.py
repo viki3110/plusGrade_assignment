@@ -18,23 +18,23 @@ app = Application()
 url='http://127.0.0.1:8000/predict'
 
 @pytest.mark.asyncio
-async def test_createSession(async_client):
+async def test_createSession(launch_app,async_client):
     res=await async_client.get('http://127.0.0.1:8000/ping')
 
     print(res.status_code)
     assert res.status_code==200
 
 @pytest.mark.asyncio
-async def test_POST_API(async_client):
+async def test_POST_API(launch_app,async_client):
     test_POST_API.__doc__="This test validates whether the POST call works as expected"
     body={'member_id':'M01',
           'balance':10000,
             'last_purchase_size':60,
            'last_purchase_date':'2025-02-02'}
     task=await asyncio.create_task(async_client.post(url='http://127.0.0.1:8000/predict',json=body))
-    print(task.status_code)
-    print(task.content)
-    print(app.jobs.keys())
+    #print(task.status_code)
+    #print(task.content)
+    #print(app.jobs.keys())
     assert task.status_code==200
 
 @pytest.mark.asyncio

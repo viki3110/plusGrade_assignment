@@ -1,9 +1,38 @@
+import asyncio
+import time
+from threading import Thread
+
 import pytest_asyncio
+import uvicorn
 from httpx import AsyncClient
+from uvicorn.supervisors.multiprocess import Process
+
 #from application.app import Application
 from util.utility import data, job
 #app=Application()
 app=job.Application()
+
+
+@pytest_asyncio.fixture
+async def launch_app():
+    app=job.Application()
+    server=uvicorn.Server(
+        config=uvicorn.Config(
+            app=app,
+            host="127.0.0.1",
+            port=8000,
+            log_level="info"
+        )
+    )
+
+    thread=Thread(target=server.run, daemon=True)
+    thread.start()
+    try:
+        time.sleep(1)
+        yield
+    finally:
+        server.should_exit=True
+        thread.join()
 
 @pytest_asyncio.fixture
 async def async_client():

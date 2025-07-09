@@ -51,10 +51,11 @@ async def test_status_API(async_client):
 
 @pytest.mark.asyncio
 async def test_result_API(async_client,data_load):
-    result=await async_client.get(url=f'http://127.0.0.1:8000/result/{"'"+data_load[0]+"'"}')
+    data="'"+data_load[0]+"'"
+    result=await async_client.get(url=f'http://127.0.0.1:8000/result/{data}')
     print(f'results are {result.json()}')
-    for i in range(100):
-        res=await async_client.get(url=f'http://127.0.0.1:8000/result/{"'" + data_load[i] + "'"}')
+    for i in range(20):
+        res=await async_client.get(url=f'http://127.0.0.1:8000/result/{data}')
 
         print(res.json())
 

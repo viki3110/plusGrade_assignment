@@ -98,8 +98,8 @@ async def test_mock_data(launch_app,async_client):
                 'last_purchase_size': payload.values[i][2],
                 'last_purchase_date': payload.values[i][3]}
         response = await async_client.post(url=url, json=mock)
+        assert response.status_code==200
         print(response.status_code)
-        print(app.jobs.values())
 
 
 @pytest.mark.xfail
@@ -124,7 +124,7 @@ async def test_edgecase_member_ID_typeCheck(launch_app,async_client):
            'last_purchase_date':'2025-06-10'}
 
     response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
-    print(response.json())
+    #print(response.json())
     assert response.status_code!=200
 
 @pytest.mark.asyncio
@@ -150,5 +150,5 @@ async def test_incorrect_leap_year_transaction(launch_app,async_client):
 async def test_status_incorrect_jobID(launch_app,async_client):
     jobid=str(uuid4())
     response=await async_client.get(url=f'http://127.0.0.1:8000/status/{jobid}')
-    print(response.json())
+    assert response.status_code!=200
 

@@ -27,7 +27,7 @@ async def test_createSession(launch_app,async_client):
 @pytest.mark.asyncio
 async def test_POST_API(launch_app,async_client):
     test_POST_API.__doc__="This test validates whether the POST call works as expected"
-    body={'member_id':'M01',
+    body={'member_id':'POST_PREDICT_API',
           'balance':10000,
             'last_purchase_size':60,
            'last_purchase_date':'2025-02-02'}
@@ -38,47 +38,59 @@ async def test_POST_API(launch_app,async_client):
     assert task.status_code==200
 
 @pytest.mark.asyncio
-async def test_status_API(async_client):
+async def test_status_API(launch_app,async_client):
     test_status_API.__doc__="This test validates whether status API works as expected"
-    print(app.jobs.keys())
-    body = {'member_id': 'M01',
+    body = {'member_id': 'GET_STATUS_API',
             'balance': 40000,
             'last_purchase_size': 60,
             'last_purchase_date': '2025-02-02'}
     job=await async_client.post(url='http://127.0.0.1:8000/predict',json=body)
+    #job=await asyncio.create_task(async_client.post(url='http://127.0.0.1:8000/predict',json=body))
 
+    assert job.status_code==200
+    await asyncio.sleep(5)
+    completed_jobID,completed_values=[],[]
+    keys=list(app.jobs.keys())
+    value=list(app.jobs.values())
+    for i in range(len(keys)):
+        if value[i]['status'] == 'completed':
+            completed_jobID.append(keys[i])
+            completed_values.append(value[i])
+
+    status=await async_client.get(url=f'http://127.0.0.1:8000/status/{completed_jobID[0]}')
+    print(status.json())
+    assert status.status_code==200
+    #print(f'keys are {keys[0]}')
 
 
 @pytest.mark.asyncio
-async def test_result_API(async_client,data_load):
-    data="'"+data_load[0]+"'"
-    result=await async_client.get(url=f'http://127.0.0.1:8000/result/{data}')
-    print(f'results are {result.json()}')
-    for i in range(20):
-        res=await async_client.get(url=f'http://127.0.0.1:8000/result/{data}')
+async def test_result_API(launch_app,async_client,data_load):
+    test_status_API.__doc__="This test validates whether status API works as expected"
+    body = {'member_id': 'GET_RESULT_API',
+            'balance': 40000,
+            'last_purchase_size': 60,
+            'last_purchase_date': '2025-02-02'}
+    job=await async_client.post(url='http://127.0.0.1:8000/predict',json=body)
+    #job=await asyncio.create_task(async_client.post(url='http://127.0.0.1:8000/predict',json=body))
 
-        print(res.json())
+    assert job.status_code==200
+    await asyncio.sleep(5)
+    completed_jobID,completed_values=[],[]
+    keys=list(app.jobs.keys())
+    value=list(app.jobs.values())
+    for i in range(len(keys)):
+        if value[i]['status'] == 'completed':
+            completed_jobID.append(keys[i])
+            completed_values.append(value[i])
 
-    print(result.status_code)
-    assert result.status_code==200
+    status=await async_client.get(url=f'http://127.0.0.1:8000/result/{completed_jobID[0]}')
+    print(status.json())
+    assert status.status_code==200
 
-@pytest.mark.asyncio
-async def test_status_API(async_client):
-    pay_load={'member_id':'M01',
-          'balance':10000,
-            'last_purchase_size':60,
-           'last_purchase_date':'2025-02-02'}
-
-    data=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
-    assert data.status_code==200
-    res=await async_client.get("http://127.0.0.1:8000")
-    print(res.json())
-
-
-    print(app.jobs.values())
 
 @pytest.mark.asyncio
-async def test_mock_data(async_client):
+async def test_mock_data(launch_app,async_client):
+    test_mock_data.__doc__="This test is to validate if mock data fetch the predict"
     payload = prediction_mock_data
     for i in range(len(payload)):
         mock = {'member_id': payload.values[i][0],
@@ -92,7 +104,7 @@ async def test_mock_data(async_client):
 
 @pytest.mark.xfail
 @pytest.mark.asyncio
-async def test_future_dated_transaction(async_client):
+async def test_future_dated_transaction(launch_app,async_client):
     test_future_dated_transaction.__doc__="This Test case is to verify that if last purchase date is future dated, Probability can not be more than one, System should alert the user to put present or past date"
     pay_load={'member_id':'M01',
           'balance':10000,
@@ -103,10 +115,8 @@ async def test_future_dated_transaction(async_client):
     assert response.status_code==200
     assert response.json()['probability_to_transact']>1
 
-
-
 @pytest.mark.asyncio
-async def test_edgecase_member_ID_typeCheck(async_client):
+async def test_edgecase_member_ID_typeCheck(launch_app,async_client):
     test_edgecase_member_ID_typeCheck.__doc__="This Test case is to verify if member ID is passed as String, the status code should not be 200 OK."
     pay_load={'member_id':200,
           'balance':2000,
@@ -118,7 +128,7 @@ async def test_edgecase_member_ID_typeCheck(async_client):
     assert response.status_code!=200
 
 @pytest.mark.asyncio
-async def test_payload_parameter_check(async_client):
+async def test_payload_parameter_check(launch_app,async_client):
     test_payload_parameter_check.__doc__="This Test case is to verify that if payload is not well construct, we should not get 200OK"
     pay_load={'member_id':'M01',
               }
@@ -127,7 +137,7 @@ async def test_payload_parameter_check(async_client):
 
 
 @pytest.mark.asyncio
-async def test_incorrect_leap_year_transaction(async_client):
+async def test_incorrect_leap_year_transaction(launch_app,async_client):
     test_incorrect_leap_year_transaction.__doc__= "This Test is to validate if incorrect date(Feb 29th-2025) was passed in last transaction date "
     pay_load={'member_id':'M01',
           'balance':2000,
@@ -137,7 +147,7 @@ async def test_incorrect_leap_year_transaction(async_client):
     assert response.status_code!=200
 
 @pytest.mark.asyncio
-async def test_status_incorrect_jobID(async_client):
+async def test_status_incorrect_jobID(launch_app,async_client):
     jobid=str(uuid4())
     response=await async_client.get(url=f'http://127.0.0.1:8000/status/{jobid}')
     print(response.json())

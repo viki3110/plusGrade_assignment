@@ -78,8 +78,3 @@ async def data_provider():
 
 
 
-
-
-    #rint(len(app.jobs.keys()))
-
-#asyncio.run(data_load())

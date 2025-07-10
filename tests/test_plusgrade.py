@@ -1,7 +1,4 @@
 import asyncio
-
-import asyncio
-import time
 from uuid import uuid4
 import pytest
 import data
@@ -19,6 +16,7 @@ url='http://127.0.0.1:8000/predict'
 
 @pytest.mark.asyncio
 async def test_createSession(launch_app,async_client):
+    test_createSession.__doc__="Health Check: This test validates if App is running well"
     res=await async_client.get('http://127.0.0.1:8000/ping')
 
     print(res.status_code)
@@ -26,7 +24,7 @@ async def test_createSession(launch_app,async_client):
 
 @pytest.mark.asyncio
 async def test_POST_API(launch_app,async_client):
-    test_POST_API.__doc__="This test validates whether the POST call works as expected"
+    test_POST_API.__doc__="POST Predict API Test: This test validates whether the POST call works as expected"
     body={'member_id':'POST_PREDICT_API',
           'balance':10000,
             'last_purchase_size':60,
@@ -39,7 +37,7 @@ async def test_POST_API(launch_app,async_client):
 
 @pytest.mark.asyncio
 async def test_status_API(launch_app,async_client):
-    test_status_API.__doc__="This test validates whether status API works as expected"
+    test_status_API.__doc__="GET status API Test: This test validates whether status API works as expected"
     body = {'member_id': 'GET_STATUS_API',
             'balance': 40000,
             'last_purchase_size': 60,
@@ -64,8 +62,8 @@ async def test_status_API(launch_app,async_client):
 
 
 @pytest.mark.asyncio
-async def test_result_API(launch_app,async_client,data_load):
-    test_status_API.__doc__="This test validates whether status API works as expected"
+async def test_result_status_complete_API(launch_app,async_client,data_load):
+    test_result_status_complete_API.__doc__="GET status API Test:This test validates if completed Job status provides 200 Status code in GET Status API"
     body = {'member_id': 'GET_RESULT_API',
             'balance': 40000,
             'last_purchase_size': 60,
@@ -87,6 +85,47 @@ async def test_result_API(launch_app,async_client,data_load):
     print(status.json())
     assert status.status_code==200
 
+
+@pytest.mark.asyncio
+async def test_status_invalid_jobID(launch_app,async_client):
+    test_status_invalid_jobID.__doc__="GET status API Test:This Test validates if Invalid job ID gets 404 HTTP Status in GET Status API"
+    jobid=str(uuid4()) #choosing Random job id
+    response=await async_client.get(url=f'http://127.0.0.1:8000/status/{jobid}')
+    assert response.status_code==404
+
+
+@pytest.mark.asyncio
+async def test_result_failed_API(launch_app,async_client):
+    test_result_failed_API.__doc__="GET result API Test:This test validates if failed job result API works as provides 500 Internal server Error"
+    body = {'member_id': 'GET_STATUS_API',
+            'balance': 40000,
+            'last_purchase_size': 60,
+            'last_purchase_date': '2025-02-02'}
+    job=await async_client.post(url='http://127.0.0.1:8000/predict',json=body)
+    #job=await asyncio.create_task(async_client.post(url='http://127.0.0.1:8000/predict',json=body))
+
+    assert job.status_code==200
+    await asyncio.sleep(2)
+    completed_jobID,completed_values=[],[]
+    keys=list(app.jobs.keys())
+    value=list(app.jobs.values())
+    for i in range(len(keys)):
+        if value[i]['status'] == 'failed':
+            completed_jobID.append(keys[i])
+            completed_values.append(value[i])
+
+    status=await async_client.get(url=f'http://127.0.0.1:8000/result/{completed_jobID[0]}')
+    print(status.json())
+    assert status.status_code==500
+    #print(f'keys are {keys[0]}')
+
+
+@pytest.mark.asyncio
+async def test_result_invalid_jobID(launch_app,async_client):
+    test_result_invalid_jobID.__doc__="GET result API Test:This Test validates if Invalid job ID gets 404 HTTP Status"
+    jobid=str(uuid4()) #choosing Random job id
+    response=await async_client.get(url=f'http://127.0.0.1:8000/result/{jobid}')
+    assert response.status_code==404
 
 @pytest.mark.asyncio
 async def test_mock_data(launch_app,async_client):
@@ -144,11 +183,5 @@ async def test_incorrect_leap_year_transaction(launch_app,async_client):
             'last_purchase_size':60,
            'last_purchase_date':'2025-02-29'}
     response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
-    assert response.status_code!=200
-
-@pytest.mark.asyncio
-async def test_status_incorrect_jobID(launch_app,async_client):
-    jobid=str(uuid4())
-    response=await async_client.get(url=f'http://127.0.0.1:8000/status/{jobid}')
     assert response.status_code!=200
 

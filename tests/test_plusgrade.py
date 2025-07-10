@@ -128,6 +128,51 @@ async def test_result_invalid_jobID(launch_app,async_client):
     assert response.status_code==404
 
 @pytest.mark.asyncio
+async def test_status_job_polling(launch_app,async_client):
+    test_status_job_polling.__doc__="job polling status API: This test is to do a status API job polling with 5 maximum attempt"
+    payload = prediction_mock_data
+    for i in range(len(payload)):
+        mock = {'member_id': payload.values[i][0],
+                'balance': payload.values[i][1],
+                'last_purchase_size': payload.values[i][2],
+                'last_purchase_date': payload.values[i][3]}
+        response = await async_client.post(url=url, json=mock)
+        keys = list(app.jobs.keys())
+        value = list(app.jobs.values())
+        await asyncio.sleep(1)
+        status = await async_client.get(url=f'http://127.0.0.1:8000/status/{keys[0]}')
+        assert status.status_code==200
+
+@pytest.mark.asyncio
+async def test_concurrency(launch_app,async_client):
+    test_concurrency.__doc__="Concurrency Testing: This Test gathers GET status and results together and validate their responses"
+    body = {'member_id': 'GET_RESULT_API',
+            'balance': 40000,
+            'last_purchase_size': 60,
+            'last_purchase_date': '2025-02-02'}
+    job=await async_client.post(url='http://127.0.0.1:8000/predict',json=body)
+    #job=await asyncio.create_task(async_client.post(url='http://127.0.0.1:8000/predict',json=body))
+
+    assert job.status_code==200
+    await asyncio.sleep(5)
+    completed_jobID,completed_values=[],[]
+    keys=list(app.jobs.keys())
+    value=list(app.jobs.values())
+    for i in range(len(keys)):
+        if value[i]['status'] == 'completed':
+            completed_jobID.append(keys[i])
+            completed_values.append(value[i])
+
+    response=await asyncio.gather(async_client.get(url=f'http://127.0.0.1:8000/result/{completed_jobID[0]}'),async_client.get(url=f'http://127.0.0.1:8000/status/{completed_jobID[0]}'))
+    assert str(response[1])=='<Response [200 OK]>'
+    assert str(response[0])=='<Response [200 OK]>'
+
+
+
+
+
+
+@pytest.mark.asyncio
 async def test_mock_data(launch_app,async_client):
     test_mock_data.__doc__="This test is to validate if mock data fetch the predict"
     payload = prediction_mock_data

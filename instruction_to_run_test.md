@@ -40,3 +40,27 @@
     2. Automated when any new builds deploys
 
 
+ **Steps to Manual Trigger**
+
+1. login to github and go to project
+2. Click on Actions
+3. Click on application -
+![img_3.png](img_3.png)
+4. click on run workflows
+ 
+![img_4.png](img_4.png)
+
+5. select branch dropdown and click on run
+6. wait for build to be completed
+7. After the build completed, click on build
+8. Look for 'test_report' and click on it, it would download
+![img_5.png](img_5.png)
+9. Unzip the report and open in browser
+![img_6.png](img_6.png)
+                  
+
+
+
+
+
+

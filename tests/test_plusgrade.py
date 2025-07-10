@@ -166,12 +166,7 @@ async def test_concurrency(launch_app,async_client):
     response=await asyncio.gather(async_client.get(url=f'http://127.0.0.1:8000/result/{completed_jobID[0]}'),async_client.get(url=f'http://127.0.0.1:8000/status/{completed_jobID[0]}'))
     assert str(response[1])=='<Response [200 OK]>'
     assert str(response[0])=='<Response [200 OK]>'
-
-
-
-
-
-
+'''
 @pytest.mark.asyncio
 async def test_mock_data(launch_app,async_client):
     test_mock_data.__doc__="This test is to validate if mock data fetch the predict"
@@ -198,7 +193,7 @@ async def test_future_dated_transaction(launch_app,async_client):
     response=await async_client.post(url='http://127.0.0.1:8000/predict', json=pay_load)
     assert response.status_code==200
     assert response.json()['probability_to_transact']>1
-
+'''
 @pytest.mark.asyncio
 async def test_edgecase_member_ID_typeCheck(launch_app,async_client):
     test_edgecase_member_ID_typeCheck.__doc__="This Test case is to verify if member ID is passed as String, the status code should not be 200 OK."

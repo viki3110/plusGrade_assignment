@@ -36,7 +36,7 @@ async def test_POST_API(launch_app,async_client):
     assert task.status_code==200
 
 
-@pytest.mark.skip("getting consisent 500, will analyze)
+@pytest.mark.skip(reason="getting consisent 500, will analyze)
 @pytest.mark.asyncio
 async def test_status_API(launch_app,async_client):
     test_status_API.__doc__="GET status API Test: This test validates whether status API works as expected"
